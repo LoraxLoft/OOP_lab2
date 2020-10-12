@@ -21,7 +21,15 @@ string summ(string x, string y){
     return res;
 }
 
-string multipl(string a, string b){
+string sdvig(string a, int n){
+    for(int i = 0; i < n; i++){
+        a.insert(a.size(), "0");
+    }
+    return a;
+
+}
+
+string multipl(const string& a, const string& b){
     if (a.size() <= 4){
         return to_string(stoi(a)*stoi(b));
     } else {
@@ -69,6 +77,7 @@ int main(){
 
     karatel.show();
     */
-    cout<<summ(x,y);
+    cout<<summ(x,y)<<endl;
+    cout<<sdvig(x, 2);
     return 0;
 }
