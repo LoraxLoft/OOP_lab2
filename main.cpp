@@ -24,9 +24,6 @@ public:
             value.push_back(stoi(num.substr(num.size()%base_len + i*base_len, base_len)));
         }
     }
-
-
-
 };
 
 void print(vector<int> a, string name=""){
@@ -111,19 +108,21 @@ vector<int> sdvig(vector<int> a, int n){
     return a;
 }
 
-vector<int> div_on_scalar(vector<int> vec, int scal){
+pair<vector<int>, int> div_on_scalar(vector<int> vec, int scal){
     if(scal==1){
-        return vec;
+        return {vec, 0};
     }
     vector<int> res;
     for(int i=0; i<vec.size()-1; i++){
         res.push_back(vec[i]/scal);
         vec[i+1] += (vec[i]%scal)*BASE;
     }
-    res.push_back(vec[vec.size()-1]/scal);
+    res.push_back(vec.back()/scal);
     normalise(res);
-    return res;
+    return {res, vec.back()%scal};
 }
+
+
 
 vector<int> KaratsubaMultipl(vector<int> a, vector<int> b, int depth = 0){
     //cout<< "depth now:"<< depth<<endl;
@@ -180,14 +179,14 @@ vector<int> polynoom(vector<int>& a, vector<int>& b, vector<int>& c, int x){
 }
 
 vector<int> ToomMultipl(vector<int> a, vector<int> b){
-    int a_s = a.size();
     urovnenie(a,b);
+    int a_s = a.size();
     if (a.size()<=3){
         return SchoolMultipl(a,b);
     } else {
         vector<int> res;
         res.push_back(0);
-        vector<int> a2, a1, b2, b1, u4, u3, u2, u1, u0, v4, v3, v2, v1, v0, w4, w3, w2, w1, w0;
+        vector<int> a2, a1, b2, b1,u0,v0;
         vector<vector<int>> w;
         int first_size, else_size;
         if (a_s%3){
@@ -214,27 +213,19 @@ vector<int> ToomMultipl(vector<int> a, vector<int> b){
         //a goes for U(x), b goes for V(x)
         //There are no a0 and b0, cause U(0) = a0 = u0, same to v0 = b0
 
-        u1 = polynoom(a2, a1, u0, 1);
-        u2 = polynoom(a2, a1, u0, 2);
-        u3 = polynoom(a2, a1, u0, 3);
-        u4 = polynoom(a2, a1, u0, 4);
-        v1 = polynoom(b2, b1, v0, 1);
-        v2 = polynoom(b2, b1, v0, 2);
-        v3 = polynoom(b2, b1, v0, 3);
-        v4 = polynoom(b2, b1, v0, 4);
-
         w.push_back(ToomMultipl(u0, v0));
-        w.push_back(ToomMultipl(u1, v1));
-        w.push_back(ToomMultipl(u2, v2));
-        w.push_back(ToomMultipl(u3, v3));
-        w.push_back(ToomMultipl(u4, v4));
+
+        for (int i = 1; i<=4; i++) {
+            w.push_back(ToomMultipl(polynoom(a2, a1, u0, i),
+                                    polynoom(b2, b1, v0, i)));
+        }
 
         vector<vector<int>> bufferL, bufferS2(1);
         vector<int> bufferS1(1);
 
         for(int i = 1; i<=4; i++){
             for(int j = i; j<=4; j++){
-                bufferL.push_back(div_on_scalar(subtr(w[j],w[j-1]), i));
+                bufferL.push_back(div_on_scalar(subtr(w[j],w[j-1]), i).first);
             }
             //намечается костыль
             w.erase(w.begin()+i,w.end());
@@ -261,6 +252,62 @@ vector<int> ToomMultipl(vector<int> a, vector<int> b){
     }
 }
 
+vector<int> div_for_shin(vector<int> a, const vector<int>& m){
+    //we count on thet m=2^n - 1
+    vector<int> res;
+    int m_s = m.size(), a_s = a.size(), ukaz=0, delitsa=1;
+
+    while(a_s-ukaz>m_s){
+        for(int i=ukaz; i<m_s; i++){
+            if(a[i]==0){
+                delitsa = 0;
+                break;
+            }
+        }
+        if (delitsa){
+            ukaz+=m_s;
+        } else {
+            a[ukaz]-=1;
+            int pos=0;
+            while(a[ukaz+m_s-pos]==1){
+                a[ukaz+m_s-pos]=0;
+                pos+=1;
+            }
+            a[ukaz+m_s-pos]=1;
+
+            pos = 0;
+            while(a[ukaz+pos!=1]){
+                pos+=1;
+            }
+            ukaz += pos;
+        }
+        delitsa=1;
+    }
+
+    if (a_s-ukaz==m_s){
+        for(int i = ukaz; i<m_s; i++){
+            if(a[i]==0){
+                delitsa=0;
+            }
+        }
+        if(delitsa){
+            res.push_back(0);
+        } else {
+            res.insert(res.begin(), a.begin()+ukaz, a.end());
+        }
+    } else {
+        res.insert(res.begin(), a.begin()+ukaz, a.end());
+    }
+
+    return res;
+}
+
+vector<int> Shingage(vector<int> a, vector<int> b){
+    vector<int> res;
+
+    return res;
+}
+
 vector<int> separator(const string& s){
     vector<int> res;
     if (s.size()%base_len != 0){
@@ -272,33 +319,54 @@ vector<int> separator(const string& s){
     return res;
 }
 
-int main0(){
-    string x, y;
-    x = "1234";
-    y = "2341";
+vector<int> base_to_2(vector<int> a){
+    vector<int> res;
+    pair<vector<int>, int> buffer;
+        while(a[0]!=0){
+             buffer = div_on_scalar(a, 2);
+             a = buffer.first;
+             res.push_back(buffer.second);
+        }
+        reverse(res.begin(), res.end());
+    return res;
+}
 
-    vector<int> chuva, ch ,lol;
-    chuva = separator(x);
-    ch = separator(y);
-    unsigned int str = clock();
-    lol = ToomMultipl(chuva, ch);
-    unsigned int end = clock();
-    for(int i:lol){
-        cout<< i<< ' ';
-    }
-    cout<<'\n'<<end-str<<'\n';
+int main(){
+    string x, y;
+
+    x="110110110";
+    y="111";
+
+    print(div_for_shin(separator(x),separator(y)));
     return 0;
 }
 
+int main1(){
+    string x, y;
+    x = "11119876543213456890998764534231234576878987688670505876";
+    y = "12345098675432456789654632345767890987654323456789098766";
 
-int main(){
+    vector<int> chuva, ch ,lol, kek;
+    chuva = separator(x);
+    ch = separator(y);
+    //unsigned int str = clock();
+    lol = ToomMultipl(chuva, ch);
+    //kek = SchoolMultipl(chuva, ch);
+    //unsigned int end = clock();
+    print(lol, "lol");
+    //print(kek, "kek");
+    //cout<<'\n'<<end-str<<'\n';
+    return 0;
+}
+
+int main0(){
     unsigned long long z;
-    z = pow(2, 15);
-    for(unsigned long long i=1000; i<=z;i++){
-        for(unsigned long long j = 1000;j<=z;j++){
+    z = pow(2, 20);
+    for(unsigned long long i=1111; i<=z;i++){
+        for(unsigned long long j = 41567;j<=z;j++){
             if (ToomMultipl(separator(to_string(i)), separator(to_string(j))) == SchoolMultipl(separator(to_string(i)), separator(to_string(j)))){continue;}
             else{
-                cout<<i<< ','<< j<< "Houston, we've got a problem"<<endl;
+                cout<<i<< ','<< j<< "\tHouston, we've got a problem"<<endl ;
                 break;
             }
         }
