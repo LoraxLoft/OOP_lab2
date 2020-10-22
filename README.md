@@ -1,2 +1,2 @@
 # OOP_lab2
-Soem 10 methods of some stuff
+Some 10 methods of some stuff
