@@ -1,30 +1,11 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <ctime>
+
 #define BASE 10
 #define base_len 1
 
 using namespace std;
-
-// have to deal with 0-s
-
-class VeryLong{
-
-    vector<int> value;
-
-public:
-
-    VeryLong(){
-        value.push_back(0);
-    }
-    VeryLong(string num){
-        value.push_back(stoi(num.substr(0, num.size()%base_len)));
-        for(int i = 0; i<num.size()/base_len; i++){
-            value.push_back(stoi(num.substr(num.size()%base_len + i*base_len, base_len)));
-        }
-    }
-};
 
 void print(vector<int> a, string name=""){
     cout<<name<< ": ";
@@ -122,10 +103,7 @@ pair<vector<int>, int> div_on_scalar(vector<int> vec, int scal){
     return {res, vec.back()%scal};
 }
 
-
-
-vector<int> KaratsubaMultipl(vector<int> a, vector<int> b, int depth = 0){
-    //cout<< "depth now:"<< depth<<endl;
+vector<int> KaratsubaMultipl(vector<int> a, vector<int> b){
     urovnenie(a, b);
     if (a.size() == 1){
         vector<int> res;
@@ -140,9 +118,9 @@ vector<int> KaratsubaMultipl(vector<int> a, vector<int> b, int depth = 0){
         b1.insert(b1.begin(), b.begin(), b.begin()+b.size()/2);
         b0.insert(b0.begin(), b.begin()+b.size()/2, b.end());
 
-        a1b1 = KaratsubaMultipl(a1, b1, depth+1);
-        a0b0 = KaratsubaMultipl(a0, b0, depth+1);
-        abmini = KaratsubaMultipl(summ(a1, a0), summ(b1, b0), depth+1);
+        a1b1 = KaratsubaMultipl(a1, b1);
+        a0b0 = KaratsubaMultipl(a0, b0);
+        abmini = KaratsubaMultipl(summ(a1, a0), summ(b1, b0));
 
         res = summ(summ(sdvig(a1b1, (a.size() - a.size()/2)*2), a0b0),sdvig(subtr(subtr(abmini, a1b1), a0b0), a.size() - a.size()/2));
 
@@ -150,7 +128,7 @@ vector<int> KaratsubaMultipl(vector<int> a, vector<int> b, int depth = 0){
     }
 }
 
-vector<int> SchoolMultipl(vector<int> a, vector<int> b){
+vector<int> SchoolMultip(vector<int> a, vector<int> b){
     vector<int> res;
     res.push_back(0);
     int a_s=a.size(), b_s=b.size();
@@ -167,10 +145,10 @@ vector<int> SchoolMultipl(vector<int> a, vector<int> b){
         }
         return res;
     }else{
-        return SchoolMultipl(b,a);
+        return SchoolMultip(b,a);
     }
 }
-
+/*
 vector<int> polynoom(vector<int>& a, vector<int>& b, vector<int>& c, int x){
     vector<int> X_zminna, X_zminna_2;
     X_zminna_2.push_back(x*x);
@@ -251,43 +229,43 @@ vector<int> ToomMultipl(vector<int> a, vector<int> b){
         return res;
     }
 }
+*/
 
 vector<int> div_for_shin(vector<int> a, const vector<int>& m){
     //we count on thet m=2^n - 1
     vector<int> res;
-    int m_s = m.size(), a_s = a.size(), ukaz=0, delitsa=1;
+    int ukaz = 0, m_s = m.size(), delitsa=1, a_s = a.size();
 
-    while(a_s-ukaz>m_s){
-        for(int i=ukaz; i<m_s; i++){
-            if(a[i]==0){
+    while(a_s-ukaz>m_s) {
+        for (int i = ukaz; i < m_s + ukaz; i++) {
+            if (a[i] == 0) {
                 delitsa = 0;
-                break;
             }
         }
-        if (delitsa){
-            ukaz+=m_s;
+        if (delitsa) {
+            ukaz += m_s;
         } else {
-            a[ukaz]-=1;
-            int pos=0;
-            while(a[ukaz+m_s-pos]==1){
-                a[ukaz+m_s-pos]=0;
-                pos+=1;
-            }
-            a[ukaz+m_s-pos]=1;
+            a[ukaz] = 0;
+            int buf = 0;
+            while (a[ukaz + m_s - buf] == 1) {
+                a[ukaz + m_s - buf] = 0;
+                buf += 1;
 
-            pos = 0;
-            while(a[ukaz+pos!=1]){
-                pos+=1;
             }
-            ukaz += pos;
+            a[ukaz + m_s - buf] = 1;
+            while (a[ukaz] == 0) {
+                ukaz += 1;
+            }
         }
         delitsa=1;
     }
 
-    if (a_s-ukaz==m_s){
-        for(int i = ukaz; i<m_s; i++){
+    if(a_s-ukaz<m_s){
+        res.insert(res.begin(), a.begin()+ukaz, a.end());
+    } else {
+        for(int i = ukaz; i<m_s+ukaz; i++){
             if(a[i]==0){
-                delitsa=0;
+                delitsa = 0;
             }
         }
         if(delitsa){
@@ -295,8 +273,6 @@ vector<int> div_for_shin(vector<int> a, const vector<int>& m){
         } else {
             res.insert(res.begin(), a.begin()+ukaz, a.end());
         }
-    } else {
-        res.insert(res.begin(), a.begin()+ukaz, a.end());
     }
 
     return res;
@@ -331,13 +307,238 @@ vector<int> base_to_2(vector<int> a){
     return res;
 }
 
+class IlangLong;
+
+class Multiplication{
+public:
+    virtual IlangLong multiply(IlangLong a, IlangLong b) = 0;
+};
+
+class IlangLong{
+
+public:
+
+    vector<int> value;
+    int Base = 10;
+    int base_Len = 1;
+    static Multiplication* mult_metod;
+
+    IlangLong(int num=0){
+        value.push_back(num);
+    }
+
+    IlangLong(vector<int> a){
+        value = a;
+    }
+
+    IlangLong(const string& num){
+        if (num.size()%base_Len != 0){
+            value.push_back(stoi(num.substr(0, num.size()%base_Len)));
+        }
+        for(int i = 0; i<num.size()/base_Len; i++){
+            value.push_back(stoi(num.substr(num.size()%base_Len + i*base_Len, base_Len)));
+        }
+    }
+
+    IlangLong operator+(IlangLong a){
+        return IlangLong(summ((*this).value, a.value));
+    }
+
+    void operator+=(IlangLong a){
+        *this = *this + a;
+    }
+
+    IlangLong operator-(IlangLong a){
+        return IlangLong(subtr((*this).value, a.value));
+    }
+
+    IlangLong operator*(IlangLong a){
+        return mult_metod -> multiply((*this).value, a.value);
+    }
+
+    IlangLong& operator=(string s){
+        *this = IlangLong(s);
+        return *this;
+    }
+
+    pair<IlangLong, int> division_on_scal(int scal){
+        if(scal==1){
+            return {*this, 0};
+        }
+        vector<int> res;
+        for(int i=0; i<value.size()-1; i++){
+            res.push_back(value[i]/scal);
+            value[i+1] += (value[i]%scal)*Base;
+        }
+        res.push_back(value.back()/scal);
+        normalise(res);
+        return {IlangLong(res), value.back()%scal};
+    }
+
+    IlangLong div_on_scal(int a){
+        return division_on_scal(a).first;
+    }
+
+    int mod_of_scal(int a){
+        return division_on_scal(a).second;
+    }
+
+    IlangLong sdvig(int n){
+        vector<int> res;
+        res = value;
+        for(int i = 0; i<n; i++){
+            res.push_back(0);
+        }
+        return IlangLong(res);
+    }
+
+    IlangLong SchoolMultipl(IlangLong b){
+        return IlangLong(SchoolMultip(value, b.value));
+    }
+
+    static void setMult(Multiplication *some_way){
+        mult_metod = some_way;
+    }
+
+    void print(const string& name = ""){
+        if (!name.empty()){
+            cout<<name<< ": ";
+        }
+        for(int i:value){
+            cout<<i<< ' ';
+        }
+        cout<<endl;
+    }
+};
+
+class KaratsubaMult: public Multiplication{
+
+public:
+    KaratsubaMult() = default;
+
+    IlangLong multiply(IlangLong a, IlangLong b) override{
+        a.print("a");
+        b.print("b");
+        cout<<endl;
+
+        urovnenie(a.value, b.value);
+        if (a.value.size() <= 2){
+            IlangLong res;
+            res += a.SchoolMultipl(b);
+            normalise(res.value);
+            return res;
+        } else {
+            IlangLong a1b1, a0b0, abmini, a1, b1, a0, b0, res;
+            a1.value.clear(), b1.value.clear(), a0.value.clear(), b0.value.clear();
+            a1.value.insert(a1.value.begin(), a.value.begin(), a.value.begin()+a.value.size()/2);
+            a0.value.insert(a0.value.begin(), a.value.begin()+a.value.size()/2, a.value.end());
+            b1.value.insert(b1.value.begin(), b.value.begin(), b.value.begin()+b.value.size()/2);
+            b0.value.insert(b0.value.begin(), b.value.begin()+b.value.size()/2, b.value.end());
+
+            a1b1 = multiply(a1, b1);
+            a0b0 = multiply(a0, b0);
+            abmini = multiply(a1 + a0, b1+ b0);
+
+            res = a1b1.sdvig((a.value.size() - a.value.size()/2)*2) + a0b0 + (abmini - a1b1 - a0b0).sdvig(a.value.size() - a.value.size()/2);
+
+            normalise(res.value);
+            return res;
+        }
+    }
+
+};
+/*
+class ToomMult: public Multiplication{
+public:
+    ToomMult()=default;
+
+    IlangLong multiply(vector<int> a, vector<int> b) override{
+        urovnenie(a,b);
+        int a_s = a.size();
+        if (a.size()<=3){
+            return IlangLong(SchoolMultipl(a,b));
+        } else {
+            IlangLong res;
+            vector<int> a2, a1, b2, b1,u0,v0;
+            vector<IlangLong> w;
+            int first_size, else_size;
+            if (a_s%3){
+                else_size = a_s/3+1;
+                first_size = else_size - (3-a_s%3);
+            } else {
+                else_size = a_s/3; first_size = else_size;
+            }
+            a2.insert(a2.begin(), a.begin(), a.begin()+first_size);
+            a1.insert(a1.begin(), a.begin()+first_size, a.begin()+first_size+else_size);
+            u0.insert(u0.begin(), a.begin()+first_size+else_size, a.end());
+
+            b2.insert(b2.begin(), b.begin(), b.begin()+first_size);
+            b1.insert(b1.begin(), b.begin()+first_size, b.begin()+first_size+else_size);
+            v0.insert(v0.begin(), b.begin()+first_size+else_size, b.end());
+
+            if (a2.empty()){
+                a2.push_back(0);
+            }
+            if(b2.empty()){
+                b2.push_back(0);
+            }
+
+            //a goes for U(x), b goes for V(x)
+            //There are no a0 and b0, cause U(0) = a0 = u0, same to v0 = b0
+
+            w.push_back(IlangLong(multiply(u0, v0)));
+
+            for (int i = 1; i<=4; i++) {
+                w.push_back(IlangLong(multiply(polynoom(a2, a1, u0, i),
+                                        polynoom(b2, b1, v0, i))));
+            }
+
+            vector<IlangLong> bufferL, bufferS2(1);
+            vector<int> bufferS1(1);
+
+            for(int i = 1; i<=4; i++){
+                for(int j = i; j<=4; j++){
+                    bufferL.push_back(w[j]-w[j-1].div_on_scal(i));
+                }
+                //намечается костыль
+                w.erase(w.begin()+i,w.end());
+                w.insert(w.end(), bufferL.begin(), bufferL.end());
+                bufferL.erase(bufferL.begin(), bufferL.end());
+            }
+
+            for(int i = 3; i>=1; i--){
+                bufferS1[0] =i;
+                for(int j = 3; j>=i; j--){
+                    bufferS2[0] = w[j] - w[j+1].SchoolMultipl(bufferS1);
+                    bufferL.insert(bufferL.begin(), bufferS2.begin(), bufferS2.end());
+                }
+                //он же продолжается
+                w.erase(w.begin()+i, w.begin()+4);
+                w.insert(w.begin()+i, bufferL.begin(), bufferL.end());
+                bufferL.erase(bufferL.begin(), bufferL.end());
+            }
+
+            for(int i = 0; i<=4; i++){
+                res += w[i].sdvig(i*else_size);
+            }
+            return res;
+        }
+    }
+};
+*/
+
+Multiplication* IlangLong::mult_metod = new KaratsubaMult();
 int main(){
-    string x, y;
 
-    x="110110110";
-    y="111";
+    IlangLong x, y;
 
-    print(div_for_shin(separator(x),separator(y)));
+    x = "1234567898";
+    y = "1234509867";
+
+    IlangLong lol = x*y;
+    lol.print();
+    print(KaratsubaMultipl(x.value, y.value));
+
     return 0;
 }
 
@@ -350,7 +551,7 @@ int main1(){
     chuva = separator(x);
     ch = separator(y);
     //unsigned int str = clock();
-    lol = ToomMultipl(chuva, ch);
+    lol = KaratsubaMultipl(chuva, ch);
     //kek = SchoolMultipl(chuva, ch);
     //unsigned int end = clock();
     print(lol, "lol");
@@ -358,7 +559,7 @@ int main1(){
     //cout<<'\n'<<end-str<<'\n';
     return 0;
 }
-
+/*
 int main0(){
     unsigned long long z;
     z = pow(2, 20);
@@ -372,4 +573,4 @@ int main0(){
         }
     }
     return 0;
-}
+}*/
