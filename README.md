@@ -1,2 +1,2 @@
 # OOP_lab2
-Some 10 methods of some stuff
+Some methods of multiplying and deviding too long numbers
